@@ -8,25 +8,18 @@
 #include <windows.h>
 #endif
 
-// Function to update the GUI with the latest monitoring data
-void update_gui() {
-    // Here you would implement the logic to update the GUI with the latest stats
-    // For example, you could call functions from monitor.c to get the latest CPU, memory, disk, and network usage
-}
-
-// Function to initialize the monitoring process
-void start_monitoring() {
-    while (1) {
-        // Call the update function to refresh the GUI
-        update_gui();
-        
-        // Sleep for a specified interval before updating again
-        sleep(3);
-    }
-}
-
-// Ejemplo de implementación para memoria
 void mostrar_memoria(char *buffer, size_t size) {
+#ifdef _WIN32
+    MEMORYSTATUSEX statex;
+    statex.dwLength = sizeof(statex);
+    if (GlobalMemoryStatusEx(&statex)) {
+        unsigned long total = (unsigned long)(statex.ullTotalPhys / (1024 * 1024));
+        unsigned long avail = (unsigned long)(statex.ullAvailPhys / (1024 * 1024));
+        snprintf(buffer, size, "RAM: %lu MB disponibles / %lu MB totales", avail, total);
+    } else {
+        snprintf(buffer, size, "RAM: Información no disponible");
+    }
+#else
     FILE *fp = fopen("/proc/meminfo", "r");
     unsigned long mem_total = 0, mem_available = 0, value;
     char label[32], unit[16];
@@ -39,6 +32,7 @@ void mostrar_memoria(char *buffer, size_t size) {
         fclose(fp);
     }
     snprintf(buffer, size, "RAM: %lu MB disponibles / %lu MB totales", mem_available / 1024, mem_total / 1024);
+#endif
 }
 
 void mostrar_disco(char *buffer, size_t size) {
@@ -65,6 +59,9 @@ void mostrar_disco(char *buffer, size_t size) {
 }
 
 void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char *buffer, size_t size) {
+#ifdef _WIN32
+    snprintf(buffer, size, "Red: No implementado en Windows");
+#else
     FILE *fp = fopen("/proc/net/dev", "r");
     char line[256];
     unsigned long long rx = 0, tx = 0;
@@ -75,7 +72,6 @@ void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char 
             char iface[32];
             unsigned long long iface_rx, iface_tx;
             sscanf(line, "%31s %llu %*s %*s %*s %*s %*s %*s %*s %llu", iface, &iface_rx, &iface_tx);
-            // Solo sumar interfaces que no sean loopback
             if (strncmp(iface, "lo:", 3) != 0) {
                 rx += iface_rx;
                 tx += iface_tx;
@@ -83,11 +79,29 @@ void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char 
         }
         fclose(fp);
     }
-    double rx_rate = (*prev_rx == 0) ? 0 : (rx - *prev_rx) / 1024.0 / 2.0; // KB/s (asumiendo refresh cada 2s)
+    double rx_rate = (*prev_rx == 0) ? 0 : (rx - *prev_rx) / 1024.0 / 2.0;
     double tx_rate = (*prev_tx == 0) ? 0 : (tx - *prev_tx) / 1024.0 / 2.0;
     *prev_rx = rx;
     *prev_tx = tx;
     snprintf(buffer, size, "Red: %.2f KB/s recibidos | %.2f KB/s enviados", rx_rate, tx_rate);
+#endif
+}
+
+// Function to update the GUI with the latest monitoring data
+void update_gui() {
+    // Here you would implement the logic to update the GUI with the latest stats
+    // For example, you could call functions from monitor.c to get the latest CPU, memory, disk, and network usage
+}
+
+// Function to initialize the monitoring process
+void start_monitoring() {
+    while (1) {
+        // Call the update function to refresh the GUI
+        update_gui();
+        
+        // Sleep for a specified interval before updating again
+        sleep(3);
+    }
 }
 
 // Main function to initialize the GUI and start monitoring
