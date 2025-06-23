@@ -11,9 +11,9 @@ CpuStats get_cpu_stats();
 double calculate_cpu_usage(CpuStats prev, CpuStats curr);
 
 // Funciones para mostrar información del sistema
-void mostrar_memoria();
+void mostrar_memoria(char *buffer, size_t size);
 void mostrar_procesos();
-void mostrar_disco();
-void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx);
+void mostrar_disco(char *buffer, size_t size);
+void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char *buffer, size_t size);
 
 #endif // MONITOR_H
