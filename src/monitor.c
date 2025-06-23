@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include "monitor.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // Function to update the GUI with the latest monitoring data
 void update_gui() {
     // Here you would implement the logic to update the GUI with the latest stats
@@ -38,6 +42,17 @@ void mostrar_memoria(char *buffer, size_t size) {
 }
 
 void mostrar_disco(char *buffer, size_t size) {
+#ifdef _WIN32
+    ULARGE_INTEGER freeBytesAvailable, totalNumberOfBytes, totalNumberOfFreeBytes;
+    if (GetDiskFreeSpaceExA("C:\\", &freeBytesAvailable, &totalNumberOfBytes, &totalNumberOfFreeBytes)) {
+        unsigned long total = (unsigned long)(totalNumberOfBytes.QuadPart / (1024 * 1024));
+        unsigned long free = (unsigned long)(totalNumberOfFreeBytes.QuadPart / (1024 * 1024));
+        snprintf(buffer, size, "Disco: %lu MB libres de %lu MB totales", free, total);
+    } else {
+        snprintf(buffer, size, "Disco: Información no disponible");
+    }
+#else
+    #include <sys/statvfs.h>
     struct statvfs stat;
     if (statvfs("/", &stat) == 0) {
         unsigned long total = (stat.f_blocks * stat.f_frsize) / (1024 * 1024);
@@ -46,6 +61,7 @@ void mostrar_disco(char *buffer, size_t size) {
     } else {
         snprintf(buffer, size, "Disco: Información no disponible");
     }
+#endif
 }
 
 void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char *buffer, size_t size) {
