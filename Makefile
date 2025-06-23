@@ -8,12 +8,12 @@ EXEC = monitor-sistema-grafico
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-    $(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -f $(OBJ) $(EXEC)
+	rm -f $(OBJ) $(EXEC)
 
 .PHONY: all clean
