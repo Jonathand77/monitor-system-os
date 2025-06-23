@@ -86,3 +86,42 @@ void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char 
     snprintf(buffer, size, "Red: %.2f KB/s recibidos | %.2f KB/s enviados", rx_rate, tx_rate);
 #endif
 }
+
+CpuStats get_cpu_stats() {
+    CpuStats stats = {0};
+#ifdef _WIN32
+    // No implementado para Windows
+#else
+    FILE *fp = fopen("/proc/stat", "r");
+    if (fp) {
+        fscanf(fp, "cpu  %llu %llu %llu %llu %llu %llu %llu %llu",
+               &stats.user, &stats.nice, &stats.system, &stats.idle,
+               &stats.iowait, &stats.irq, &stats.softirq, &stats.steal);
+        fclose(fp);
+    }
+#endif
+    return stats;
+}
+
+double calculate_cpu_usage(CpuStats prev, CpuStats curr) {
+#ifdef _WIN32
+    return 0.0; // No implementado para Windows
+#else
+    unsigned long long prev_idle = prev.idle + prev.iowait;
+    unsigned long long curr_idle = curr.idle + curr.iowait;
+
+    unsigned long long prev_non_idle = prev.user + prev.nice + prev.system +
+                                       prev.irq + prev.softirq + prev.steal;
+    unsigned long long curr_non_idle = curr.user + curr.nice + curr.system +
+                                       curr.irq + curr.softirq + curr.steal;
+
+    unsigned long long prev_total = prev_idle + prev_non_idle;
+    unsigned long long curr_total = curr_idle + curr_non_idle;
+
+    double totald = (double)(curr_total - prev_total);
+    double idled = (double)(curr_idle - prev_idle);
+
+    if (totald == 0) return 0.0;
+    return 100.0 * (totald - idled) / totald;
+#endif
+}
