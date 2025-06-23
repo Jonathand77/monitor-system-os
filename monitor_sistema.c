@@ -1,6 +1,3 @@
-// monitor_sistema.c
-// Monitor de sistema básico en C para Linux
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
