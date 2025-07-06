@@ -7,6 +7,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <tlhelp32.h>
+#include <iphlpapi.h>
+#include <netioapi.h>
+#pragma comment(lib, "iphlpapi.lib")
 #endif
 
 // --- MEMORIA ---
@@ -191,7 +194,7 @@ void mostrar_procesos(char *buffer, size_t size) {
     used += snprintf(buffer + used, size - used, "%-8s %-25s\n", "PID", "Nombre del Proceso");
     used += snprintf(buffer + used, size - used, "----------------------------------------\n");
     do {
-        used += snprintf(buffer + used, size - used, "%-8lu %-25ls\n", pe32.th32ProcessID, pe32.szExeFile);
+        used += snprintf(buffer + used, size - used, "%-8lu %-25s\n", pe32.th32ProcessID, pe32.szExeFile);
         if (used >= size - 64) break; // Evita desbordamiento
     } while (Process32Next(hProcessSnap, &pe32));
     CloseHandle(hProcessSnap);

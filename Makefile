@@ -5,6 +5,10 @@ SRC = src/main.c src/monitor.c src/gui.c
 OBJ = $(SRC:.c=.o)
 EXEC = monitor-sistema-grafico
 
+ifeq ($(OS),Windows_NT)
+    LDFLAGS += -liphlpapi
+endif
+
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
