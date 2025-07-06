@@ -67,20 +67,30 @@ void mostrar_disco(char *buffer, size_t size) {
 // --- RED ---
 void mostrar_red(unsigned long long *prev_rx, unsigned long long *prev_tx, char *buffer, size_t size) {
 #ifdef _WIN32
-    // Usar GetIfTable2 para obtener tráfico de red
-    MIB_IF_TABLE2 *ifTable;
+    MIB_IFTABLE *ifTable;
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
     ULONG rx = 0, tx = 0;
-    if (GetIfTable2(&ifTable) == NO_ERROR) {
-        for (ULONG i = 0; i < ifTable->NumEntries; ++i) {
-            MIB_IF_ROW2 *row = &ifTable->Table[i];
+
+    // Primer llamada para obtener el tamaño necesario
+    GetIfTable(NULL, &dwSize, FALSE);
+    ifTable = (MIB_IFTABLE *) malloc(dwSize);
+    if (ifTable == NULL) {
+        snprintf(buffer, size, "Red: Error de memoria");
+        return;
+    }
+    if ((dwRetVal = GetIfTable(ifTable, &dwSize, FALSE)) == NO_ERROR) {
+        for (DWORD i = 0; i < ifTable->dwNumEntries; i++) {
+            MIB_IFROW *row = &ifTable->table[i];
             // Solo interfaces operativas y no loopback
-            if (row->OperStatus == IfOperStatusUp && !(row->Type == IF_TYPE_SOFTWARE_LOOPBACK)) {
-                rx += (ULONG)row->InOctets;
-                tx += (ULONG)row->OutOctets;
+            if (row->dwOperStatus == IF_OPER_STATUS_OPERATIONAL && !(row->dwType == IF_TYPE_SOFTWARE_LOOPBACK)) {
+                rx += row->dwInOctets;
+                tx += row->dwOutOctets;
             }
         }
-        FreeMibTable(ifTable);
     }
+    free(ifTable);
+
     double rx_rate = (*prev_rx == 0) ? 0 : (rx - *prev_rx) / 1024.0 / 2.0;
     double tx_rate = (*prev_tx == 0) ? 0 : (tx - *prev_tx) / 1024.0 / 2.0;
     *prev_rx = rx;
