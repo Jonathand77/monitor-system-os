@@ -108,10 +108,4 @@ En Windows, asegúrate de estar en la terminal **MSYS2 MinGW 64-bit** para que l
 
 ---
 
-## 👨‍💻 Créditos
-
-Desarrollado por [Tu Nombre o Equipo].
-
----
-
 ¡Contribuciones y sugerencias son bienvenidas! 🚀
