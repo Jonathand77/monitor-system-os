@@ -1,0 +1,8 @@
+# Artefactos de compilación (generados por `make` / `make test`)
+monitor-sistema-grafico
+monitor-sistema-grafico.exe
+test_runner
+test_runner.exe
+*.o
+*.exe
+monitor
